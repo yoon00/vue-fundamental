@@ -15,18 +15,16 @@ let id = 0;
 interface Todo {
   id: number;
   text: string;
-  done: boolean;
 }
 
 const todos = ref<Todo[]>([
-  {id:id++, text:'HTML 배우기', done:false},
-  {id:id++, text:'CSS 배우기', done:false},
-  {id:id++, text:'JavaScript 배우기', done:false},
-  {id:id++, text:'Vue 배우기', done:false},
+  {id:id++, text:'HTML 배우기'},
+  {id:id++, text:'CSS 배우기'},
+  {id:id++, text:'JavaScript 배우기'},
+  {id:id++, text:'Vue 배우기'},
 ])
 
 const newTodo = ref('');
-const hideCompleted = ref(false);
 
 
 const removeTodo = (id:number) => {
@@ -37,18 +35,11 @@ const addTodo = () => {
   if(newTodo.value.trim()){
     todos.value.push({
       id: id++,
-      text: newTodo.value.trim(),
-      done: false
+      text: newTodo.value.trim()
     })
     newTodo.value = '' // 입력 필드 초기화
   }
 }
-
-
-const filteredTodo = () => {
-  return hideCompleted.value ? todos.value.filter(t => !t.done) : todos.value
-}
-
 
 </script>
 
@@ -60,30 +51,18 @@ const filteredTodo = () => {
     <button type="submit">할 일 추가</button>
   </form>
 
-  <div v-if="todos.length > 0">총 할 일 : {{ filteredTodo().length }} 개</div>
+  <div v-if="todos.length > 0">총 할 일 : {{ todos.length }} 개</div>
   <div v-else>할 일 끝!</div>
   <ul>
-    <li v-for="todo in filteredTodo()" :key="todo.id">
-      <input type="checkbox" :id="`${todo.id}`" v-model="todo.done">
-      <label :for="`${todo.id}`">
-        <span :class="{done:todo.done, text:'newValue'}">{{ todo.text }}</span>
-      </label>
+    <li v-for="todo in todos" :key="todo.id">
+      {{ todo.text }}
       <button type="button" @click="()=> removeTodo(todo.id)">❌</button>
     </li>
   </ul>
 
-  <button type="button" @click="hideCompleted = !hideCompleted">
-    {{ hideCompleted ? 'show all' : 'hide completed' }}
-  </button>
-
 </template>
 
 <style scoped>
-
-.done{
-  text-decoration: line-through;
-}
-
 form{
   margin-bottom: 1rem;
 }
