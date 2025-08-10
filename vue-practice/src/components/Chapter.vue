@@ -1,101 +1,51 @@
-<!-- 
-
-vue의 리스트 렌더링은 v-for 디렉티브를 사용하여 만들 수 있습니다.
-vue는 내부적으로 proxy를 사용하기 때문에 immutable 데이터를 강제하지 않습니다.
-
-
--->
-
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import LoadingSpinner from './LoadingSpinner.vue';
 
+  const todoId = ref(1);
+  const todoData = ref(null);
+  const isLoading = ref(false);
 
-let id = 0;
+  async function fetchData(){
 
-interface Todo {
-  id: number;
-  text: string;
-  done: boolean;
-}
+    isLoading.value = true;
 
-const todos = ref<Todo[]>([
-  {id:id++, text:'HTML 배우기', done:false},
-  {id:id++, text:'CSS 배우기', done:false},
-  {id:id++, text:'JavaScript 배우기', done:false},
-  {id:id++, text:'Vue 배우기', done:false},
-])
+    try{
+      const res = await fetch(`https://jsonplaceholder.typicode.com/todos/${todoId.value}`)
+      todoData.value = await res.json();
+    }catch{
 
-const newTodo = ref('');
-const hideCompleted = ref(false);
+    }finally{
+      isLoading.value = false;
+    }
 
-
-const removeTodo = (id:number) => {
-  todos.value = todos.value.filter(todo => todo.id !== id);
-}
-
-const addTodo = () => {
-  if(newTodo.value.trim()){
-    todos.value.push({
-      id: id++,
-      text: newTodo.value.trim(),
-      done: false
-    })
-    newTodo.value = '' // 입력 필드 초기화
   }
-}
 
-
-const filteredTodo = () => {
-  return hideCompleted.value ? todos.value.filter(t => !t.done) : todos.value
-}
-
-
+  fetchData();
+  const {pause, stop, resume} = watch(todoId, fetchData, {
+    // once:true
+  });
 </script>
 
-
 <template>
-
-  <form @submit.prevent="addTodo">
-    <input type="text" v-model="newTodo">
-    <button type="submit">할 일 추가</button>
-  </form>
-
-  <div v-if="todos.length > 0">총 할 일 : {{ filteredTodo().length }} 개</div>
-  <div v-else>할 일 끝!</div>
-  <ul>
-    <li v-for="todo in filteredTodo()" :key="todo.id">
-      <input type="checkbox" :id="`${todo.id}`" v-model="todo.done">
-      <label :for="`${todo.id}`">
-        <span :class="{done:todo.done, text:'newValue'}">{{ todo.text }}</span>
-      </label>
-      <button type="button" @click="()=> removeTodo(todo.id)">❌</button>
-    </li>
-  </ul>
-
-  <button type="button" @click="hideCompleted = !hideCompleted">
-    {{ hideCompleted ? 'show all' : 'hide completed' }}
-  </button>
-
+  <div class="container">
+    <p>할 일 ID: {{ todoId }}</p>
+    <button type="button" @click="todoId++">다음 할 일 가져오기</button>
+    <hr />
+    <LoadingSpinner v-if="isLoading"/>
+    <pre v-else>
+      <code> {{ todoData }} </code>
+    </pre>
+  </div>
 </template>
 
 <style scoped>
-
-.done{
-  text-decoration: line-through;
+.container{
+  width: 500px;
+  height: 500px;
 }
-
-form{
-  margin-bottom: 1rem;
+pre{
+  background-color: rgb(22, 22, 22);
+  border-radius: 0.3rem;
 }
-
-ul{
-  li{
-    margin-bottom: 1rem;
-  }
-}
-
-button{
-  margin-left: 2rem;
-}
-
 </style>
